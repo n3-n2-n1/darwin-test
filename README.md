@@ -1,34 +1,34 @@
-# 🤖 Bot de Gastos para Telegram
+# 🤖 Telegram Expense Tracking Bot
 
-Buenas!
+A simple Telegram bot that helps users track their expenses using AI categorization.
 
-## 🎯 ¿Qué hace?
+## 🎯 Features
 
-- Registra tus gastos directamente desde Telegram
-- Categoriza automáticamente usando IA (gracias OpenAI!)
-- Te guarda todo en una base de datos (Supabase)
-- Es tan simple como mandarle "Pizza 2500" y ya te lo registra
+- Track expenses directly through Telegram
+- Automatic expense categorization using OpenAI
+- Data persistence with Supabase
+- Simple input format: just send "Pizza 25" to log an expense
 
-## 🛠 Tecnologías
+## 🛠 Tech Stack
 
-- **Bot Service**: Python + FastAPI (porque Flask ya fue)
-- **Connector Service**: Node.js (para el webhook de Telegram)
-- **Base de Datos**: Supabase (PostgreSQL pero sin tener que mantener nada)
-- **Deploy**: Render (porque Heroku ahora es caro y Railway tiene límite de horas)
+- **Bot Service**: Python + FastAPI
+- **Connector Service**: Node.js
+- **Database**: Supabase (PostgreSQL)
+- **Deployment**: Render
 
-## 📋 Requisitos para levantar este repositorio (local)
+## 📋 Local Development Requirements
 
-- Node.js 18 o superior
-- Python 3.9 o superior
-- Cuenta en Supabase (gratis)
-- API Key de OpenAI
-- Bot Token de Telegram (gratis, gracias [@BotFather](https://t.me/botfather))
+- Node.js 18+
+- Python 3.9+
+- Supabase account
+- OpenAI API Key
+- Telegram Bot Token (from [@BotFather](https://t.me/botfather))
 
 ## 🚀 Setup
 
-1. Cloná el repo
-2. Creá un `.env` en cada servicio usando los `.env.example` como base
-3. Instalá las dependencias:
+1. Clone the repository
+2. Create `.env` files in both services using `.env.example` templates
+3. Install dependencies:
 
 ```bash
 # Bot Service (Python)
@@ -40,22 +40,20 @@ cd ../connector-service
 npm install
 ```
 
-## 🔑 Variables de Entorno
-
-Necesitás configurar:
+## 🔑 Environment Variables
 
 ```bash
 # Bot Service
-SUPABASE_URL=tu_url_de_supabase
-SUPABASE_KEY=tu_key_de_supabase
-OPENAI_API_KEY=tu_api_key_de_openai
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+OPENAI_API_KEY=your_openai_api_key
 
 # Connector Service
-TELEGRAM_BOT_TOKEN=token_de_tu_bot
-BOT_SERVICE_URL=http://localhost:8000 # En local
+TELEGRAM_BOT_TOKEN=your_bot_token
+BOT_SERVICE_URL=http://localhost:8000 # For local development
 ```
 
-## 💻 Desarrollo Local
+## 💻 Local Development
 
 ```bash
 # Bot Service
@@ -67,31 +65,40 @@ cd connector-service
 npm run dev
 ```
 
-## 🌎 Deploy
+## 🌎 Deployment
 
-El proyecto está preparado para deployar en Render. Solo tenés que:
+This is a monorepo project with two services that need to be deployed separately on Render:
 
-1. Crear un nuevo Web Service en Render
-2. Conectar con tu repo de GitHub
-3. Configurar las variables de entorno
-4. Render se encarga del resto 🙌
+### Bot Service (Python)
+1. Create a new Web Service on Render
+2. Connect your GitHub repository
+3. Configure build settings:
+   - Build Command: `pip install -r bot-service/requirements.txt`
+   - Start Command: `cd bot-service && uvicorn main:app --host 0.0.0.0 --port $PORT`
+   - Root Directory: `/`
 
-### URLs importantes para el deploy:
+### Connector Service (Node.js)
+1. Create another Web Service on Render
+2. Connect the same GitHub repository
+3. Configure build settings:
+   - Build Command: `cd connector-service && npm install`
+   - Start Command: `cd connector-service && npm start`
+   - Root Directory: `/`
 
-- Webhook de Telegram: `https://tu-app.onrender.com/webhook`
-- Endpoint del Bot Service: `https://tu-bot-service.onrender.com`
+Don't forget to set the environment variables in both services on Render.
 
-## 📱 Probalo!
+### Important URLs
+- Bot Service: https://darwin-test-oti1.onrender.com
+- Telegram Bot: [@newdartest8398_bot](https://web.telegram.org/k/#@newdartest8398_bot)
 
-1. Buscá el bot en Telegram: [link_a_tu_bot]
-2. Mandále cualquier gasto tipo "Café con medialunas 1200"
-3. El bot te va a responder con la categoría y  lo guarda
+## 📱 Try it out!
 
+1. Open [@newdartest8398_bot](https://web.telegram.org/k/#@newdartest8398_bot) in Telegram
+2. Send a message like "Coffee 5"
+3. The bot will categorize and save your expense
 
+## ⚠️ Notes
 
-## ⚠️ Notas
-
-- Ojo que OpenAI es pago
-- La versión free de Supabase va como piña para empezar
-- En Render podés usar el free tier, pero te conviene el hobby si querés que no se duerma
-
+- OpenAI API requires a paid account
+- Supabase free tier is suitable for testing
+- Consider using Render's paid tier for production use
