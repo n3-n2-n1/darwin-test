@@ -4,21 +4,20 @@ import fetch from 'node-fetch';
 
 dotenv.config();
 
-console.log('Bot iniciando...');
-console.log(`URL del servicio: ${process.env.BOT_SERVICE_URL}`);
-
+console.log('Bot starting...');
+console.log(`Service URL: ${process.env.BOT_SERVICE_URL}`);
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
-console.log('Bot conectado y escuchando mensajes...');
+console.log('Bot connected and listening for messages...');
 const BOT_SERVICE_URL = process.env.BOT_SERVICE_URL || 'http://localhost:8000';
 
 bot.on('message', async (msg) => {
-    console.log('Mensaje recibido:', msg.text);
+    console.log('Message received:', msg.text);
     const chatId = msg.chat.id;
     
     try {
-        // Enviar mensaje al Bot Service
+        // Send message to the Bot Service
         const response = await fetch(`${BOT_SERVICE_URL}/process-message`, {
             method: 'POST',
             headers: {
@@ -32,12 +31,12 @@ bot.on('message', async (msg) => {
 
         const data = await response.json();
 
-        // Solo responder si el mensaje fue procesado como un gasto
+        // Only respond if the message was processed as an expense
         if (data.status === 'success') {
             bot.sendMessage(chatId, data.message);
         }
     } catch (error) {
         console.error('Error:', error);
-        // No enviamos mensaje de error al usuario para mantenerlo simple
+        // No error message is sent to the user to keep it simple
     }
 });
