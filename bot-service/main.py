@@ -17,17 +17,17 @@ app = FastAPI()
 def read_root():
     return {"status": "healthy"}
 
-# Configuración de Supabase
+# Supabase configuration
 supabase = create_client(
     os.getenv('SUPABASE_URL'),
     os.getenv('SUPABASE_KEY')
 )
 
-# Configuración de LangChain
+# LangChain configuration
 llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo", openai_api_key=os.getenv('OPENAI_API_KEY'))
 categorize_prompt = PromptTemplate(
     input_variables=["description"],
-    template="Categoriza este gasto en una de las siguientes categorías: Housing, Transportation, Food, Utilities, Insurance, Medical/Healthcare, Savings, Debt, Education, Entertainment, Other. Solo responde con la categoría, nada más. Descripción: {description}"
+    template="Categorize this expense into one of the following categories: Housing, Transportation, Food, Utilities, Insurance, Medical/Healthcare, Savings, Debt, Education, Entertainment, Other. Just respond with the category, nothing else. Description: {description}"
 )
 categorize_chain = LLMChain(llm=llm, prompt=categorize_prompt)
 
@@ -36,25 +36,25 @@ class ExpenseMessage(BaseModel):
     message: str
 
 def is_user_authorized(telegram_id: str) -> Optional[int]:
-    # Primero busca si el usuario existe
+    # First, check if the user exists
     response = supabase.table('users').select('id').eq('telegram_id', telegram_id).execute()
     if response.data:
         return response.data[0]['id']
     
-    # Si no existe, lo registra automáticamente
+    # If the user does not exist, register them automatically
     response = supabase.table('users').insert({"telegram_id": telegram_id}).execute()
     return response.data[0]['id'] if response.data else None
 
 def parse_expense(message: str):
-    # Busca un número en el mensaje
+    # Look for a number in the message
     words = message.split()
     amount = None
     description = []
     
     for word in words:
-        # Intenta convertir la palabra en número
+        # Try to convert the word into a number
         try:
-            # Elimina caracteres no numéricos excepto el punto
+            # Remove non-numeric characters except for the dot
             clean_number = ''.join(c for c in word if c.isdigit() or c == '.')
             amount = float(clean_number)
             continue
@@ -71,21 +71,21 @@ def parse_expense(message: str):
 
 @app.post("/process-message")
 async def process_message(expense_msg: ExpenseMessage):
-    print(f"Telegram ID recibido: {expense_msg.telegram_id}")
-    # Verificar o registrar usuario
+    print(f"Received Telegram ID: {expense_msg.telegram_id}")
+    # Verify or register user
     user_id = is_user_authorized(expense_msg.telegram_id)
     if not user_id:
-        raise HTTPException(status_code=403, detail="No se pudo autorizar al usuario")
+        raise HTTPException(status_code=403, detail="User authorization failed")
 
-    # Parsear el mensaje
+    # Parse the message
     expense_data = parse_expense(expense_msg.message)
     if not expense_data:
-        return {"status": "ignored", "message": "No se detectó un gasto válido"}
+        return {"status": "ignored", "message": "No valid expense detected"}
 
-    # Categorizar el gasto
+    # Categorize the expense
     category = categorize_chain.run(expense_data['description']).strip()
 
-    # Guardar en la base de datos
+    # Save to the database
     try:
         data = {
             'user_id': user_id,
